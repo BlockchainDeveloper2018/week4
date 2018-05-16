@@ -1,0 +1,29 @@
+{
+  "name": "Contract_validation",
+  "version": "0.1.0",
+  "scripts": {},
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/BlockchainDeveloper2018/week3.git"
+  },
+  "keywords": [
+    "smart-contract",
+    "solidity",
+    "ethereum",
+    "security",
+    "ICO",
+    "token"
+  ],
+  "author": "jajul",
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "babel-polyfill": "^6.23.0",
+    "babel-preset-es2015": "^6.18.0",
+    "babel-preset-stage-2": "^6.18.0",
+    "babel-preset-stage-3": "^6.17.0",
+    "babel-register": "^6.23.0",
+    "ganache-cli": "^6.0.3",
+    "truffle": "4.1.7",
+    "zeppelin-solidity": "^1.9.0"
+  }
+}
