@@ -12,8 +12,9 @@ contract VulnerableOne {
     //    We use uint256 in UserInfo
     using SafeMath for uint256;
 
+    //    if miner creates contract with timestamp = 0, nobody can delete him. Changed timestamp to boolean value
     struct UserInfo {
-        uint256 created;
+        bool created;
         uint256 ether_balance;
     }
 
@@ -40,13 +41,14 @@ contract VulnerableOne {
 
     //    We use SafeMath for uint256 - we don't need to check that balance was increased
     function pay() public payable {
-        require(users_map[msg.sender].created != 0);
+        require(users_map[msg.sender].created == true);
         users_map[msg.sender].ether_balance += msg.value;
     }
 
+    //    if miner creates contract with timestamp = 0, nobody can delete him
     function add_new_user(address _new_user) public onlySuperUser {
-        require(users_map[_new_user].created == 0);
-        users_map[_new_user] = UserInfo({created : now, ether_balance : 0});
+        require(users_map[_new_user].created == false);
+        users_map[_new_user] = UserInfo({created : true, ether_balance : 0});
         users_list.push(_new_user);
     }
 
@@ -54,7 +56,7 @@ contract VulnerableOne {
     //    We don't need users list - test "add and remove users" checked that function isn't correct
     //    Also we don't know who can delete users - there is no information about it in TZ
     function remove_user(address _remove_user) public {
-        require(users_map[msg.sender].created != 0);
+        require(users_map[msg.sender].created == true);
         delete (users_map[_remove_user]);
     }
 
