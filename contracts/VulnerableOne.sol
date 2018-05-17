@@ -25,12 +25,12 @@ contract VulnerableOne {
         require(is_super_user[msg.sender] == true);
         _;
     }
-    bool[] private lockUserBalances;
 
     event UserAdded(address new_user);
 
     constructor() public {
-        set_super_user(msg.sender);
+        //        we can't call set_super_user - msg.sender isn't superuser yet
+        is_super_user[msg.sender] = true;
         add_new_user(msg.sender);
     }
 
@@ -64,8 +64,9 @@ contract VulnerableOne {
     //    'msg.sender.transfer' - is function from another contract. We don't actually know what happen in that contract.
     //    This function 'withdraw' can be called several times during first line execution - it's not safety
     function withdraw() public {
+        var balance = users_map[msg.sender].ether_balance;
         users_map[msg.sender].ether_balance = 0;
-        msg.sender.transfer(users_map[msg.sender].ether_balance);
+        msg.sender.transfer(balance);
     }
 
     function get_user_balance(address _user) public view returns (uint256) {
