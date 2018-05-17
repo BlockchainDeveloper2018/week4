@@ -9,20 +9,22 @@ If user sends ether, his balance is increased. Then he can withdraw eteher from 
 
 
 contract VulnerableOne {
-    using SafeMath for uint;
+    //    We use uint256 in UserInfo
+    using SafeMath for uint256;
 
     struct UserInfo {
         uint256 created;
         uint256 ether_balance;
     }
 
-    mapping (address => UserInfo) public users_map;
-    mapping (address => bool) is_super_user;
+    mapping(address => UserInfo) public users_map;
+    mapping(address => bool) is_super_user;
     address[] users_list;
     modifier onlySuperUser() {
         require(is_super_user[msg.sender] == true);
         _;
     }
+    bool[] private lockUserBalances;
 
     event UserAdded(address new_user);
 
@@ -31,10 +33,12 @@ contract VulnerableOne {
         add_new_user(msg.sender);
     }
 
-    function set_super_user(address _new_super_user) public {
+    //    Only superuser can mark other users as superusers
+    function set_super_user(address _new_super_user) public onlySuperUser {
         is_super_user[_new_super_user] = true;
     }
 
+    //    We use SafeMath for uint256 - we don't need to check that balance was increased
     function pay() public payable {
         require(users_map[msg.sender].created != 0);
         users_map[msg.sender].ether_balance += msg.value;
@@ -42,31 +46,36 @@ contract VulnerableOne {
 
     function add_new_user(address _new_user) public onlySuperUser {
         require(users_map[_new_user].created == 0);
-        users_map[_new_user] = UserInfo({ created: now, ether_balance: 0 });
+        users_map[_new_user] = UserInfo({created : now, ether_balance : 0});
         users_list.push(_new_user);
     }
 
+    //    Logic Bugs
+    //    We don't need users list - test "add and remove users" checked that function isn't correct
+    //    Also we don't know who can delete users - there is no information about it in TZ
     function remove_user(address _remove_user) public {
         require(users_map[msg.sender].created != 0);
-        delete(users_map[_remove_user]);
-        bool shift = false;
-        for (uint i=0; i<users_list.length; i++) {
-            if (users_list[i] == _remove_user) {
-                shift = true;
-            }
-            if (shift == true) {
-                users_list[i] = users_list[i+1];
-            }
-        }
+        delete (users_map[_remove_user]);
     }
 
+    //    Cross-function Race Conditions
+    //    'msg.sender.transfer' - is function from another contract. We don't actually know what happen in that contract.
+    //    This function 'withdraw' can be called several times during first line execution - it's not safety
     function withdraw() public {
-        msg.sender.transfer(users_map[msg.sender].ether_balance);
         users_map[msg.sender].ether_balance = 0;
+        msg.sender.transfer(users_map[msg.sender].ether_balance);
     }
 
-    function get_user_balance(address _user) public view returns(uint256) {
+    function get_user_balance(address _user) public view returns (uint256) {
         return users_map[_user].ether_balance;
+    }
+
+    function is_i_super_user() public view returns (bool) {
+        return is_super_user[msg.sender];
+    }
+
+    function is_user_super_user(address user) public view returns (bool) {
+        return is_super_user[user];
     }
 
 }
